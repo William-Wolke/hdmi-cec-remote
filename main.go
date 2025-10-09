@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"regexp"
+	"strings"
 	"time"
 )
 
@@ -17,10 +17,29 @@ var (
 	datlastkey          = time.Now()
 	strlastkey          = ""
 	intkeychar          = 0
-	reKeyPressed        = regexp.MustCompile(`key pressed: ([^ ]+) \((\d+)\)`)
-	reKeyReleased       = regexp.MustCompile(`key released: ([^ ]+) \((\d+)\)`)
 )
 
+func getBaseKeyName(line, eventType string) (keyName string, ok bool) {
+    prefix := fmt.Sprintf("%s: ", eventType)
+    idx := strings.Index(line, prefix)
+    if idx == -1 {
+        return "", false
+    }
+    after := line[idx+len(prefix):]
+    // Find first " (" which marks the start of extra info/code
+    parenIdx := strings.Index(after, " (")
+    if parenIdx == -1 {
+        return "", false
+    }
+    // Take everything up to " (" and trim
+    namePart := strings.TrimSpace(after[:parenIdx])
+    // If there is extra info in parentheses, remove it (e.g. "F1 (blue)" → "F1")
+    // Only keep the part before any " (" or before any " (" after the key name
+    if spaceIdx := strings.Index(namePart, " "); spaceIdx != -1 {
+        namePart = namePart[:spaceIdx]
+    }
+    return namePart, true
+}
 func runXdotool(args ...string) {
 	cmd := exec.Command("xdotool", args...)
 	_ = cmd.Run() // ignore errors for now
@@ -52,21 +71,25 @@ func main() {
 		// Debug: Print every line
 		fmt.Printf("[DEBUG] Raw line: %s\n", oneline)
 
-		if m := reKeyPressed.FindStringSubmatch(oneline); len(m) > 0 {
-			strkey := m[1]
-			fmt.Printf("[DEBUG] Key pressed: %s\n", strkey)
+		// Detect key pressed event using strings.Contains
+		if strings.Contains(oneline, "key pressed: ") {
+			keyName, ok := getBaseKeyName(oneline, "key pressed")
+			if !ok {
+				continue
+			}
+			fmt.Printf("[DEBUG] Key pressed: %s\n", keyName)
 			datnow := time.Now()
 			datdiff := int(datnow.Sub(datlastkey).Milliseconds())
 
-			if strkey == strlastkey && datdiff < intmsbetweenkeys {
+			if keyName == strlastkey && datdiff < intmsbetweenkeys {
 				intkeychar++
 			} else {
 				intkeychar = 0
 			}
 			datlastkey = datnow
-			strlastkey = strkey
+			strlastkey = keyName
 
-			switch strkey {
+			switch keyName {
 			case "1":
 				keychar("1jkl", intkeychar)
 			case "2":
@@ -139,12 +162,15 @@ func main() {
 			case "stop":
 				fmt.Println("Key Pressed: STOP")
 			default:
-				fmt.Printf("Unrecognized Key Pressed: %s\n", strkey)
+				fmt.Printf("Unrecognized Key Pressed: %s\n", keyName)
 			}
-		} else if m := reKeyReleased.FindStringSubmatch(oneline); len(m) > 0 {
-			strkey := m[1]
-			fmt.Printf("[DEBUG] Key released: %s\n", strkey)
-			switch strkey {
+		} else if strings.Contains(oneline, "key released: ") {
+			keyName, ok := getBaseKeyName(oneline, "key released")
+			if !ok {
+				continue
+			}
+			fmt.Printf("[DEBUG] Key released: %s\n", keyName)
+			switch keyName {
 			case "stop":
 				fmt.Println("Key Released: STOP")
 			case "up", "down", "left", "right":
