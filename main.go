@@ -68,7 +68,7 @@ func main() {
 
 			switch strkey {
 			case "1":
-				runXdotool("key", "BackSpace")
+				keychar("1jkl", intkeychar)
 			case "2":
 				keychar("abc2", intkeychar)
 			case "3":
@@ -86,13 +86,13 @@ func main() {
 			case "9":
 				keychar("wxyz9", intkeychar)
 			case "0":
-				keychar(" 0.-", intkeychar)
-			case "previous channel":
-				runXdotool("key", "Return")
+				keychar(" 09wxyz", intkeychar)
+			// case "previous channel":
+			// 	runXdotool("key", "Return")
 			case "channel up":
-				runXdotool("click", "4")
+				runXdotool("key", "Right")
 			case "channel down":
-				runXdotool("click", "5")
+				runXdotool("key", "Left")
 			case "channels list":
 				runXdotool("click", "3")
 			case "up":
@@ -116,15 +116,18 @@ func main() {
 			case "return":
 				runXdotool("key", "Alt_L+Left")
 			case "exit":
-				fmt.Println("Key Pressed: EXIT")
+				runXdotool("key", "BackSpace")
+			case "F1":
+				// Shitty controller has broken down key
+				intpixels := 1 * intmousespeed
+				runXdotool("mousemove_relative", "--", "0", fmt.Sprintf("%d", intpixels))
+				intmousespeed += intmouseacc
 			case "F2":
-				exec.Command("chromium-browser", "https://www.youtube.com").Start()
+				runXdotool("key", "Pause")
 			case "F3":
-				exec.Command("chromium-browser", "https://www.google.com").Start()
+				runXdotool("key", "C")
 			case "F4":
 				fmt.Println("Key Pressed: YELLOW C")
-			case "F1":
-				exec.Command("chromium-browser", "--incognito", "https://www.google.com").Start()
 			case "rewind":
 				fmt.Println("Key Pressed: REWIND")
 			case "pause":
