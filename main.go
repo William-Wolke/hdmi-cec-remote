@@ -10,13 +10,14 @@ import (
 )
 
 var (
-	intmsbetweenkeys    = 2000 // ms
+	intmsbetweenkeys    = 4000 // ms
 	intmousestartspeed  = 10
 	intmouseacc         = 10
 	intmousespeed       = intmousestartspeed
 	datlastkey          = time.Now()
 	strlastkey          = ""
 	intkeychar          = 0
+	keyIsPressed 	    = false
 )
 
 func getBaseKeyName(line, eventType string) (keyName string, ok bool) {
@@ -77,7 +78,12 @@ func main() {
 			if !ok {
 				continue
 			}
+			if keyIsPressed && keyName == strlastkey {
+				fmt.Printf("[DEBUG] Ignored duplicate Key pressed: %s\n", keyName)
+				continue
+			}
 			fmt.Printf("[DEBUG] Key pressed: %s\n", keyName)
+			keyIsPressed = true
 			datnow := time.Now()
 			datdiff := int(datnow.Sub(datlastkey).Milliseconds())
 
@@ -170,6 +176,7 @@ func main() {
 				continue
 			}
 			fmt.Printf("[DEBUG] Key released: %s\n", keyName)
+			keyIsPressed = false
 			switch keyName {
 			case "stop":
 				fmt.Println("Key Released: STOP")
