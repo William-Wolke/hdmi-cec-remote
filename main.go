@@ -5,41 +5,43 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"slices"
 	"strings"
 	"time"
 )
 
 var (
-	intmsbetweenkeys    = 4000 // ms
-	intmousestartspeed  = 10
-	intmouseacc         = 10
-	intmousespeed       = intmousestartspeed
-	datlastkey          = time.Now()
-	strlastkey          = ""
-	intkeychar          = 0
-	keyIsPressed 	    = false
+	intmsbetweenkeys   = 4000 // ms
+	intmousestartspeed = 10
+	intmouseacc        = 10
+	intmousespeed      = intmousestartspeed
+	datlastkey         = time.Now()
+	strlastkey         = ""
+	intkeychar         = 0
+	keyIsPressed       = false
+	navKeys            = []string{"up", "right", "down", "left"}
 )
 
 func getBaseKeyName(line, eventType string) (keyName string, ok bool) {
-    prefix := fmt.Sprintf("%s: ", eventType)
-    idx := strings.Index(line, prefix)
-    if idx == -1 {
-        return "", false
-    }
-    after := line[idx+len(prefix):]
-    // Find first " (" which marks the start of extra info/code
-    parenIdx := strings.Index(after, " (")
-    if parenIdx == -1 {
-        return "", false
-    }
-    // Take everything up to " (" and trim
-    namePart := strings.TrimSpace(after[:parenIdx])
-    // If there is extra info in parentheses, remove it (e.g. "F1 (blue)" → "F1")
-    // Only keep the part before any " (" or before any " (" after the key name
-    if spaceIdx := strings.Index(namePart, " "); spaceIdx != -1 {
-        namePart = namePart[:spaceIdx]
-    }
-    return namePart, true
+	prefix := fmt.Sprintf("%s: ", eventType)
+	idx := strings.Index(line, prefix)
+	if idx == -1 {
+		return "", false
+	}
+	after := line[idx+len(prefix):]
+	// Find first " (" which marks the start of extra info/code
+	parenIdx := strings.Index(after, " (")
+	if parenIdx == -1 {
+		return "", false
+	}
+	// Take everything up to " (" and trim
+	namePart := strings.TrimSpace(after[:parenIdx])
+	// If there is extra info in parentheses, remove it (e.g. "F1 (blue)" → "F1")
+	// Only keep the part before any " (" or before any " (" after the key name
+	if spaceIdx := strings.Index(namePart, " "); spaceIdx != -1 {
+		namePart = namePart[:spaceIdx]
+	}
+	return namePart, true
 }
 func runXdotool(args ...string) {
 	cmd := exec.Command("xdotool", args...)
@@ -78,7 +80,8 @@ func main() {
 			if !ok {
 				continue
 			}
-			if keyIsPressed && keyName == strlastkey {
+			isNavKey := slices.Contains(navKeys, keyName)
+			if keyIsPressed && keyName == strlastkey && !isNavKey {
 				fmt.Printf("[DEBUG] Ignored duplicate Key pressed: %s\n", keyName)
 				continue
 			}
