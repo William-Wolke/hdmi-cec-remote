@@ -112,6 +112,17 @@ func mouseMoveLoop(dir string, cancelChan chan struct{}) {
 	}
 }
 
+func moveMouse(keyName string) {
+	// Start smooth movement goroutine if not already moving
+	if moveDir != keyName {
+		// Cancel previous movement if any
+		close(moveCancel)
+		moveCancel = make(chan struct{})
+		moveDir = keyName
+		go mouseMoveLoop(keyName, moveCancel)
+	}
+}
+
 func keyPressAction(keyName string) {
 	isNavKey := slices.Contains(navKeys, keyName)
 	if keyIsPressed && keyName == strlastkey && !isNavKey {
@@ -159,14 +170,7 @@ func keyPressAction(keyName string) {
 	case "channels list":
 		runXdotool("click", "3")
 	case "up", "down", "left", "right":
-		// Start smooth movement goroutine if not already moving
-		if moveDir != keyName {
-			// Cancel previous movement if any
-			close(moveCancel)
-			moveCancel = make(chan struct{})
-			moveDir = keyName
-			go mouseMoveLoop(keyName, moveCancel)
-		}
+		moveMouse(keyName)
 	case "select":
 		runXdotool("click", "1")
 	case "return":
