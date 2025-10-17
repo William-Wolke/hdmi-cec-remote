@@ -24,8 +24,9 @@ var (
 	strlastkey    = ""
 	intkeychar    = 0
 	keyIsPressed  = false
-	moveCancel    chan struct{} // channel to signal movement goroutine to stop
 	navKeys       = []string{"up", "right", "down", "left"}
+	moveCancel    chan struct{} // channel to signal movement goroutine to stop
+	moveDir       string
 )
 
 func getBaseKeyName(line, eventType string) (keyName string, ok bool) {
@@ -111,10 +112,110 @@ func mouseMoveLoop(dir string, cancelChan chan struct{}) {
 	}
 }
 
+func keyPressAction(keyName string) {
+	isNavKey := slices.Contains(navKeys, keyName)
+	if keyIsPressed && keyName == strlastkey && !isNavKey {
+		log.Printf("[DEBUG] Ignored duplicate Key pressed: %s\n", keyName)
+		return
+	}
+	log.Printf("[DEBUG] Key pressed: %s\n", keyName)
+	keyIsPressed = true
+	datnow := time.Now()
+	datdiff := int(datnow.Sub(datlastkey).Milliseconds())
+
+	if keyName == strlastkey && datdiff < intmsbetweenkeys {
+		intkeychar++
+	} else {
+		intkeychar = 0
+	}
+	datlastkey = datnow
+	strlastkey = keyName
+
+	switch keyName {
+	case "1":
+		keychar("1jkl", intkeychar)
+	case "2":
+		keychar("abc2", intkeychar)
+	case "3":
+		keychar("def3", intkeychar)
+	case "4":
+		keychar("ghi4", intkeychar)
+	case "5":
+		keychar("jkl5", intkeychar)
+	case "6":
+		keychar("mno6", intkeychar)
+	case "7":
+		keychar("pqrs7", intkeychar)
+	case "8":
+		keychar("tuv8", intkeychar)
+	case "9":
+		keychar("wxyz9", intkeychar)
+	case "0":
+		keychar(" 09wxyz", intkeychar)
+	case "channel up":
+		runXdotool("key", "Right")
+	case "channel down":
+		runXdotool("key", "Left")
+	case "channels list":
+		runXdotool("click", "3")
+	case "up", "down", "left", "right":
+		// Start smooth movement goroutine if not already moving
+		if moveDir != keyName {
+			// Cancel previous movement if any
+			close(moveCancel)
+			moveCancel = make(chan struct{})
+			moveDir = keyName
+			go mouseMoveLoop(keyName, moveCancel)
+		}
+	case "select":
+		runXdotool("click", "1")
+	case "return":
+		runXdotool("key", "Alt_L+Left")
+	case "exit":
+		runXdotool("key", "BackSpace")
+	case "F1":
+		intpixels := 1 * intmousespeed
+		runXdotool("mousemove_relative", "--", "0", fmt.Sprintf("%d", intpixels))
+		intmousespeed += intmouseacc
+	case "F2":
+		runXdotool("key", "Pause")
+	case "F3":
+		runXdotool("key", "C")
+	case "F4":
+		fmt.Println("Key Pressed: YELLOW C")
+	case "rewind":
+		fmt.Println("Key Pressed: REWIND")
+	case "pause":
+		fmt.Println("Key Pressed: PAUSE")
+	case "Fast forward":
+		fmt.Println("Key Pressed: FAST FORWARD")
+	case "play":
+		fmt.Println("Key Pressed: PLAY")
+	case "stop":
+		fmt.Println("Key Pressed: STOP")
+	default:
+		fmt.Printf("Unrecognized Key Pressed: %s\n", keyName)
+	}
+}
+
+func keyReleaseAction(keyName string) {
+	log.Printf("[DEBUG] Key released: %s\n", keyName)
+	keyIsPressed = false
+	switch keyName {
+	case "stop":
+		fmt.Println("Key Released: STOP")
+	case "up", "down", "left", "right":
+		intmousespeed = intmousestartspeed
+		// Stop movement goroutine
+		close(moveCancel)
+		moveCancel = make(chan struct{})
+		moveDir = ""
+	}
+}
+
 func main() {
 	scanner := bufio.NewScanner(os.Stdin)
 	moveCancel = make(chan struct{})
-	var moveDir string
 
 	for scanner.Scan() {
 		line := scanner.Text()
@@ -124,104 +225,11 @@ func main() {
 
 		keyName, isKeyPressed := getKeyEvent(line, "key pressed: ")
 		if isKeyPressed {
-			isNavKey := slices.Contains(navKeys, keyName)
-			if keyIsPressed && keyName == strlastkey && !isNavKey {
-				log.Printf("[DEBUG] Ignored duplicate Key pressed: %s\n", keyName)
-				continue
-			}
-			log.Printf("[DEBUG] Key pressed: %s\n", keyName)
-			keyIsPressed = true
-			datnow := time.Now()
-			datdiff := int(datnow.Sub(datlastkey).Milliseconds())
-
-			if keyName == strlastkey && datdiff < intmsbetweenkeys {
-				intkeychar++
-			} else {
-				intkeychar = 0
-			}
-			datlastkey = datnow
-			strlastkey = keyName
-
-			switch keyName {
-			case "1":
-				keychar("1jkl", intkeychar)
-			case "2":
-				keychar("abc2", intkeychar)
-			case "3":
-				keychar("def3", intkeychar)
-			case "4":
-				keychar("ghi4", intkeychar)
-			case "5":
-				keychar("jkl5", intkeychar)
-			case "6":
-				keychar("mno6", intkeychar)
-			case "7":
-				keychar("pqrs7", intkeychar)
-			case "8":
-				keychar("tuv8", intkeychar)
-			case "9":
-				keychar("wxyz9", intkeychar)
-			case "0":
-				keychar(" 09wxyz", intkeychar)
-			case "channel up":
-				runXdotool("key", "Right")
-			case "channel down":
-				runXdotool("key", "Left")
-			case "channels list":
-				runXdotool("click", "3")
-			case "up", "down", "left", "right":
-				// Start smooth movement goroutine if not already moving
-				if moveDir != keyName {
-					// Cancel previous movement if any
-					close(moveCancel)
-					moveCancel = make(chan struct{})
-					moveDir = keyName
-					go mouseMoveLoop(keyName, moveCancel)
-				}
-			case "select":
-				runXdotool("click", "1")
-			case "return":
-				runXdotool("key", "Alt_L+Left")
-			case "exit":
-				runXdotool("key", "BackSpace")
-			case "F1":
-				intpixels := 1 * intmousespeed
-				runXdotool("mousemove_relative", "--", "0", fmt.Sprintf("%d", intpixels))
-				intmousespeed += intmouseacc
-			case "F2":
-				runXdotool("key", "Pause")
-			case "F3":
-				runXdotool("key", "C")
-			case "F4":
-				fmt.Println("Key Pressed: YELLOW C")
-			case "rewind":
-				fmt.Println("Key Pressed: REWIND")
-			case "pause":
-				fmt.Println("Key Pressed: PAUSE")
-			case "Fast forward":
-				fmt.Println("Key Pressed: FAST FORWARD")
-			case "play":
-				fmt.Println("Key Pressed: PLAY")
-			case "stop":
-				fmt.Println("Key Pressed: STOP")
-			default:
-				fmt.Printf("Unrecognized Key Pressed: %s\n", keyName)
-			}
+			keyPressAction(keyName)
 		}
 		keyName, isKeyReleased := getKeyEvent(line, "key released: ")
 		if isKeyReleased {
-			log.Printf("[DEBUG] Key released: %s\n", keyName)
-			keyIsPressed = false
-			switch keyName {
-			case "stop":
-				fmt.Println("Key Released: STOP")
-			case "up", "down", "left", "right":
-				intmousespeed = intmousestartspeed
-				// Stop movement goroutine
-				close(moveCancel)
-				moveCancel = make(chan struct{})
-				moveDir = ""
-			}
+			keyReleaseAction(keyName)
 		}
 	}
 }
