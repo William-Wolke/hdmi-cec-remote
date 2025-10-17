@@ -11,17 +11,21 @@ import (
 	"time"
 )
 
-var (
+const (
 	intmsbetweenkeys   = 4000 // ms
-	intmousestartspeed = 10
-	intmouseacc        = 10
-	intmousespeed      = intmousestartspeed
-	datlastkey         = time.Now()
-	strlastkey         = ""
-	intkeychar         = 0
-	keyIsPressed       = false
-	navKeys            = []string{"up", "right", "down", "left"}
-	moveCancel         chan struct{} // channel to signal movement goroutine to stop
+	intmousestartspeed = 5
+	intmouseacc        = 2
+	intmousemaxspeed   = 25
+)
+
+var (
+	intmousespeed = intmousestartspeed
+	datlastkey    = time.Now()
+	strlastkey    = ""
+	intkeychar    = 0
+	keyIsPressed  = false
+	moveCancel    chan struct{} // channel to signal movement goroutine to stop
+	navKeys       = []string{"up", "right", "down", "left"}
 )
 
 func getBaseKeyName(line, eventType string) (keyName string, ok bool) {
@@ -99,7 +103,7 @@ func mouseMoveLoop(dir string, cancelChan chan struct{}) {
 				x, y = speed, 0
 			}
 			runXdotool("mousemove_relative", "--", fmt.Sprintf("%d", x), fmt.Sprintf("%d", y))
-			if time.Now().After(accelStart) && speed < 50 {
+			if time.Now().After(accelStart) && speed < intmousemaxspeed {
 				speed += intmouseacc
 			}
 			time.Sleep(30 * time.Millisecond)
