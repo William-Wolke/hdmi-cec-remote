@@ -163,8 +163,10 @@ func main() {
 									x, y = speed, 0
 								}
 								runXdotool("mousemove_relative", "--", fmt.Sprintf("%d", x), fmt.Sprintf("%d", y))
-								speed += intmouseacc
-								time.Sleep(20 * time.Millisecond)
+								if speed < 50 { // limit max speed
+									speed += intmouseacc
+								}
+								time.Sleep(30 * time.Millisecond) // slower interval
 							}
 						}
 					}(keyName, moveCancel)
