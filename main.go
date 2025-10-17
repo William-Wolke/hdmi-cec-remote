@@ -20,6 +20,7 @@ var (
 	intkeychar         = 0
 	keyIsPressed       = false
 	navKeys            = []string{"up", "right", "down", "left"}
+	moveCancel         chan struct{} // channel to signal movement goroutine to stop
 )
 
 func getBaseKeyName(line, eventType string) (keyName string, ok bool) {
@@ -66,20 +67,31 @@ func keychar(parin1 string, parin2 int) {
 	runXdotool("key", char)
 }
 
+func getKeyEvent(line string, event string) (keyName string, isKeyPressed bool) {
+	if !strings.Contains(line, event) {
+		return "", false
+	}
+	// Detect key pressed event using strings.Contains
+	keyName, ok := getBaseKeyName(line, "key pressed")
+	if !ok {
+		return "", false
+	}
+	return keyName, true
+}
+
 func main() {
 	scanner := bufio.NewScanner(os.Stdin)
+	moveCancel = make(chan struct{})
+	var moveDir string
+
 	for scanner.Scan() {
-		oneline := scanner.Text()
+		line := scanner.Text()
 
 		// Debug: Print every line
-		fmt.Printf("[DEBUG] Raw line: %s\n", oneline)
+		fmt.Printf("[DEBUG] Raw line: %s\n", line)
 
-		// Detect key pressed event using strings.Contains
-		if strings.Contains(oneline, "key pressed: ") {
-			keyName, ok := getBaseKeyName(oneline, "key pressed")
-			if !ok {
-				continue
-			}
+		keyName, isKeyPressed := getKeyEvent(line, "key pressed: ")
+		if isKeyPressed {
 			isNavKey := slices.Contains(navKeys, keyName)
 			if keyIsPressed && keyName == strlastkey && !isNavKey {
 				fmt.Printf("[DEBUG] Ignored duplicate Key pressed: %s\n", keyName)
@@ -119,30 +131,44 @@ func main() {
 				keychar("wxyz9", intkeychar)
 			case "0":
 				keychar(" 09wxyz", intkeychar)
-			// case "previous channel":
-			// 	runXdotool("key", "Return")
 			case "channel up":
 				runXdotool("key", "Right")
 			case "channel down":
 				runXdotool("key", "Left")
 			case "channels list":
 				runXdotool("click", "3")
-			case "up":
-				intpixels := -1 * intmousespeed
-				runXdotool("mousemove_relative", "--", "0", fmt.Sprintf("%d", intpixels))
-				intmousespeed += intmouseacc
-			case "down":
-				intpixels := 1 * intmousespeed
-				runXdotool("mousemove_relative", "--", "0", fmt.Sprintf("%d", intpixels))
-				intmousespeed += intmouseacc
-			case "left":
-				intpixels := -1 * intmousespeed
-				runXdotool("mousemove_relative", "--", fmt.Sprintf("%d", intpixels), "0")
-				intmousespeed += intmouseacc
-			case "right":
-				intpixels := 1 * intmousespeed
-				runXdotool("mousemove_relative", "--", fmt.Sprintf("%d", intpixels), "0")
-				intmousespeed += intmouseacc
+			case "up", "down", "left", "right":
+				// Start smooth movement goroutine if not already moving
+				if moveDir != keyName {
+					// Cancel previous movement if any
+					close(moveCancel)
+					moveCancel = make(chan struct{})
+					moveDir = keyName
+					go func(dir string, cancelChan chan struct{}) {
+						speed := intmousestartspeed
+						for {
+							select {
+							case <-cancelChan:
+								return
+							default:
+								var x, y int
+								switch dir {
+								case "up":
+									x, y = 0, -speed
+								case "down":
+									x, y = 0, speed
+								case "left":
+									x, y = -speed, 0
+								case "right":
+									x, y = speed, 0
+								}
+								runXdotool("mousemove_relative", "--", fmt.Sprintf("%d", x), fmt.Sprintf("%d", y))
+								speed += intmouseacc
+								time.Sleep(20 * time.Millisecond)
+							}
+						}
+					}(keyName, moveCancel)
+				}
 			case "select":
 				runXdotool("click", "1")
 			case "return":
@@ -150,7 +176,6 @@ func main() {
 			case "exit":
 				runXdotool("key", "BackSpace")
 			case "F1":
-				// Shitty controller has broken down key
 				intpixels := 1 * intmousespeed
 				runXdotool("mousemove_relative", "--", "0", fmt.Sprintf("%d", intpixels))
 				intmousespeed += intmouseacc
@@ -173,11 +198,9 @@ func main() {
 			default:
 				fmt.Printf("Unrecognized Key Pressed: %s\n", keyName)
 			}
-		} else if strings.Contains(oneline, "key released: ") {
-			keyName, ok := getBaseKeyName(oneline, "key released")
-			if !ok {
-				continue
-			}
+		}
+		keyName, isKeyReleased := getKeyEvent(line, "key released: ")
+		if isKeyReleased {
 			fmt.Printf("[DEBUG] Key released: %s\n", keyName)
 			keyIsPressed = false
 			switch keyName {
@@ -185,6 +208,10 @@ func main() {
 				fmt.Println("Key Released: STOP")
 			case "up", "down", "left", "right":
 				intmousespeed = intmousestartspeed
+				// Stop movement goroutine
+				close(moveCancel)
+				moveCancel = make(chan struct{})
+				moveDir = ""
 			}
 		}
 	}
