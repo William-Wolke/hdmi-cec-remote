@@ -144,7 +144,7 @@ func keyPressAction(keyName string) {
 
 	switch keyName {
 	case "1":
-		keychar("1jkl", intkeychar)
+		keychar("1.!", intkeychar)
 	case "2":
 		keychar("abc2", intkeychar)
 	case "3":
@@ -162,13 +162,13 @@ func keyPressAction(keyName string) {
 	case "9":
 		keychar("wxyz9", intkeychar)
 	case "0":
-		keychar(" 09wxyz", intkeychar)
+		keychar(" 0", intkeychar)
 	case "channel up":
-		runXdotool("key", "Right")
+		runXdotool("click", "4") // Scroll up
 	case "channel down":
-		runXdotool("key", "Left")
+		runXdotool("click", "5") // Scroll down
 	case "channels list":
-		runXdotool("click", "3")
+		runXdotool("click", "3") // Right click
 	case "up", "down", "left", "right":
 		moveMouse(keyName)
 	case "select":
@@ -178,27 +178,25 @@ func keyPressAction(keyName string) {
 	case "exit":
 		runXdotool("key", "BackSpace")
 	case "F1":
-		intpixels := 1 * intmousespeed
-		runXdotool("mousemove_relative", "--", "0", fmt.Sprintf("%d", intpixels))
-		intmousespeed += intmouseacc
+		runXdotool("key", "Right") // Skip forward
 	case "F2":
-		runXdotool("key", "Pause")
+		runXdotool("key", "Left") // Skip backward
 	case "F3":
-		runXdotool("key", "C")
+		runXdotool("key", "C") // Toggle subtitles
 	case "F4":
-		fmt.Println("Key Pressed: YELLOW C")
+		runXdotool("key", "F") // Full screen
 	case "rewind":
-		fmt.Println("Key Pressed: REWIND")
+		log.Println("Key Pressed: REWIND")
 	case "pause":
-		fmt.Println("Key Pressed: PAUSE")
+		log.Println("Key Pressed: PAUSE")
 	case "Fast forward":
-		fmt.Println("Key Pressed: FAST FORWARD")
+		log.Println("Key Pressed: FAST FORWARD")
 	case "play":
-		fmt.Println("Key Pressed: PLAY")
+		log.Println("Key Pressed: PLAY")
 	case "stop":
-		fmt.Println("Key Pressed: STOP")
+		log.Println("Key Pressed: STOP")
 	default:
-		fmt.Printf("Unrecognized Key Pressed: %s\n", keyName)
+		log.Printf("Unrecognized Key Pressed: %s\n", keyName)
 	}
 }
 
