@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"slices"
@@ -24,7 +25,7 @@ var (
 )
 
 func getBaseKeyName(line, eventType string) (keyName string, ok bool) {
-	prefix := fmt.Sprintf("%s: ", eventType)
+	prefix := eventType
 	idx := strings.Index(line, prefix)
 	if idx == -1 {
 		return "", false
@@ -67,12 +68,11 @@ func keychar(parin1 string, parin2 int) {
 	runXdotool("key", char)
 }
 
-func getKeyEvent(line string, event string) (keyName string, isKeyPressed bool) {
-	if !strings.Contains(line, event) {
+func getKeyEvent(line string, eventType string) (keyName string, isKeyPressed bool) {
+	if !strings.Contains(line, eventType) {
 		return "", false
 	}
-	// Detect key pressed event using strings.Contains
-	keyName, ok := getBaseKeyName(line, "key pressed")
+	keyName, ok := getBaseKeyName(line, eventType)
 	if !ok {
 		return "", false
 	}
@@ -88,16 +88,16 @@ func main() {
 		line := scanner.Text()
 
 		// Debug: Print every line
-		fmt.Printf("[DEBUG] Raw line: %s\n", line)
+		// fmt.Printf("[DEBUG] Raw line: %s\n", line)
 
 		keyName, isKeyPressed := getKeyEvent(line, "key pressed: ")
 		if isKeyPressed {
 			isNavKey := slices.Contains(navKeys, keyName)
 			if keyIsPressed && keyName == strlastkey && !isNavKey {
-				fmt.Printf("[DEBUG] Ignored duplicate Key pressed: %s\n", keyName)
+				log.Printf("[DEBUG] Ignored duplicate Key pressed: %s\n", keyName)
 				continue
 			}
-			fmt.Printf("[DEBUG] Key pressed: %s\n", keyName)
+			log.Printf("[DEBUG] Key pressed: %s\n", keyName)
 			keyIsPressed = true
 			datnow := time.Now()
 			datdiff := int(datnow.Sub(datlastkey).Milliseconds())
@@ -203,7 +203,7 @@ func main() {
 		}
 		keyName, isKeyReleased := getKeyEvent(line, "key released: ")
 		if isKeyReleased {
-			fmt.Printf("[DEBUG] Key released: %s\n", keyName)
+			log.Printf("[DEBUG] Key released: %s\n", keyName)
 			keyIsPressed = false
 			switch keyName {
 			case "stop":
