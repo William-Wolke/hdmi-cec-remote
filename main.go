@@ -185,16 +185,6 @@ func keyPressAction(keyName string) {
 		runXdotool("key", "C") // Toggle subtitles
 	case "F4":
 		runXdotool("key", "F") // Full screen
-	case "rewind":
-		log.Println("Key Pressed: REWIND")
-	case "pause":
-		log.Println("Key Pressed: PAUSE")
-	case "Fast forward":
-		log.Println("Key Pressed: FAST FORWARD")
-	case "play":
-		log.Println("Key Pressed: PLAY")
-	case "stop":
-		log.Println("Key Pressed: STOP")
 	default:
 		log.Printf("Unrecognized Key Pressed: %s\n", keyName)
 	}
