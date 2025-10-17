@@ -79,6 +79,34 @@ func getKeyEvent(line string, eventType string) (keyName string, isKeyPressed bo
 	return keyName, true
 }
 
+func mouseMoveLoop(dir string, cancelChan chan struct{}) {
+	speed := intmousestartspeed
+	accelStart := time.Now().Add(1 * time.Second)
+	for {
+		select {
+		case <-cancelChan:
+			return
+		default:
+			var x, y int
+			switch dir {
+			case "up":
+				x, y = 0, -speed
+			case "down":
+				x, y = 0, speed
+			case "left":
+				x, y = -speed, 0
+			case "right":
+				x, y = speed, 0
+			}
+			runXdotool("mousemove_relative", "--", fmt.Sprintf("%d", x), fmt.Sprintf("%d", y))
+			if time.Now().After(accelStart) && speed < 50 {
+				speed += intmouseacc
+			}
+			time.Sleep(30 * time.Millisecond)
+		}
+	}
+}
+
 func main() {
 	scanner := bufio.NewScanner(os.Stdin)
 	moveCancel = make(chan struct{})
@@ -144,32 +172,7 @@ func main() {
 					close(moveCancel)
 					moveCancel = make(chan struct{})
 					moveDir = keyName
-					go func(dir string, cancelChan chan struct{}) {
-						speed := intmousestartspeed
-						for {
-							select {
-							case <-cancelChan:
-								return
-							default:
-								var x, y int
-								switch dir {
-								case "up":
-									x, y = 0, -speed
-								case "down":
-									x, y = 0, speed
-								case "left":
-									x, y = -speed, 0
-								case "right":
-									x, y = speed, 0
-								}
-								runXdotool("mousemove_relative", "--", fmt.Sprintf("%d", x), fmt.Sprintf("%d", y))
-								if speed < 50 { // limit max speed
-									speed += intmouseacc
-								}
-								time.Sleep(30 * time.Millisecond) // slower interval
-							}
-						}
-					}(keyName, moveCancel)
+					go mouseMoveLoop(keyName, moveCancel)
 				}
 			case "select":
 				runXdotool("click", "1")
