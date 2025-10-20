@@ -177,6 +177,8 @@ func keyPressAction(keyName string) {
 		runXdotool("key", "Alt_L+Left")
 	case "exit":
 		runXdotool("key", "BackSpace")
+	case "clear":
+		runXdotool("key", "Escape")
 	case "F1":
 		runXdotool("key", "Right") // Skip forward
 	case "F2":
