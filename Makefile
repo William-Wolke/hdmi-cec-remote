@@ -1,8 +1,10 @@
+SHELL := /bin/bash
 
-GO_BIN = cec-program
+GO_BIN = cec-remote
 GO_SRC = .
 SCRIPT = cec-remote.sh
-SERVICE = cec-program.service
+SERVICE = cec-remote.service
+TARGET_HOST = "192.168.0.133"
 
 PREFIX = /usr/local
 BIN_DIR = $(PREFIX)/bin
@@ -23,3 +25,10 @@ install: $(GO_BIN)
 
 clean:
 	rm -f $(GO_BIN)
+
+sync-remote:
+	make clean
+	make
+	scp -r ./* $(TARGET_HOST):~/hdmi-cec-remote/
+	ssh -t 192.168.0.133 "cd ~/hdmi-cec-remote/ && sudo make install"
+
