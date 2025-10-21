@@ -122,7 +122,8 @@ func moveMouse(keyName string) {
 
 func keyPressAction(keyName string) {
 	isNavKey := slices.Contains(navKeys, keyName)
-	if keyIsPressed && keyName == strlastkey && !isNavKey {
+	isScrollKey := keyName == "channel up" || keyName == "channel down"
+	if keyIsPressed && keyName == strlastkey && !isNavKey && !isScrollKey {
 		log.Printf("[DEBUG] Ignored duplicate Key pressed: %s\n", keyName)
 		return
 	}
