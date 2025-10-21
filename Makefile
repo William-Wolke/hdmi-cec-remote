@@ -15,6 +15,9 @@ all: $(GO_BIN)
 $(GO_BIN):
 	go build -o $(GO_BIN) $(GO_SRC)
 
+build-arm:
+	GOOS=linux GOARCH=arm GOARM=7 go build -o $(GO_BIN) $(GO_SRC)
+
 install: $(GO_BIN)
 	install -m 0755 $(GO_BIN) $(BIN_DIR)
 	install -m 0755 $(SCRIPT) $(BIN_DIR)
@@ -28,7 +31,7 @@ clean:
 
 sync-remote:
 	make clean
-	make
+	make build-arm
 	scp -r ./* $(TARGET_HOST):~/hdmi-cec-remote/
 	ssh -t 192.168.0.133 "cd ~/hdmi-cec-remote/ && sudo make install"
 
