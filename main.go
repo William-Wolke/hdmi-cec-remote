@@ -45,9 +45,6 @@ func getBaseKeyName(line, eventType string) (keyName string, ok bool) {
 	namePart := strings.TrimSpace(after[:parenIdx])
 	// If there is extra info in parentheses, remove it (e.g. "F1 (blue)" → "F1")
 	// Only keep the part before any " (" or before any " (" after the key name
-	if spaceIdx := strings.Index(namePart, " "); spaceIdx != -1 {
-		namePart = namePart[:spaceIdx]
-	}
 	return namePart, true
 }
 func runXdotool(args ...string) {
