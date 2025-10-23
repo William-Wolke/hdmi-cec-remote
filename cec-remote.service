@@ -1,13 +1,10 @@
-   [Unit]
-   Description=CEC client program for turning tv remote inputs into x server actions
+[Unit]
+Description=CEC client program for turning tv remote inputs into Wayland actions
 
-   [Service]
-   Environment="DISPLAY=:0"
-   Environment="XAUTHORITY=/home/william/.Xauthority"
-   ExecStart=/usr/local/bin/cec-remote.sh
-   Restart=always
-   User=william
-   StandardOutput=journal
+[Service]
+ExecStart=/usr/local/bin/cec-remote.sh
+Restart=always
+StandardOutput=journal
 
-   [Install]
-   WantedBy=multi-user.target
+[Install]
+WantedBy=default.target

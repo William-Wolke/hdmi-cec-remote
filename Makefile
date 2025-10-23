@@ -5,10 +5,11 @@ GO_SRC = .
 SCRIPT = cec-remote.sh
 SERVICE = cec-remote.service
 TARGET_HOST = "192.168.0.133"
+TARGET_USER = "william"
 
 PREFIX = /usr/local
 BIN_DIR = $(PREFIX)/bin
-SYSTEMD_DIR = /etc/systemd/system
+SYSTEMD_DIR = /home/$(TARGET_USER)/.config/systemd/user
 
 all: $(GO_BIN)
 
@@ -22,9 +23,10 @@ install: $(GO_BIN)
 	install -m 0755 $(GO_BIN) $(BIN_DIR)
 	install -m 0755 $(SCRIPT) $(BIN_DIR)
 	install -m 0644 $(SERVICE) $(SYSTEMD_DIR)
-	systemctl daemon-reload
-	systemctl enable $(SERVICE)
-	systemctl restart $(SERVICE)
+	# Run in a user session:
+	# systemctl --user daemon-reload
+	# systemctl --user enable $(SERVICE)
+	# systemctl --user restart $(SERVICE)
 
 clean:
 	rm -f $(GO_BIN)
@@ -32,6 +34,6 @@ clean:
 sync-remote:
 	make clean
 	make build-arm
-	scp -r ./* $(TARGET_HOST):~/hdmi-cec-remote/
-	ssh -t 192.168.0.133 "cd ~/hdmi-cec-remote/ && sudo make install"
+	scp -r ./* $(TARGET_USER)@$(TARGET_HOST):/home/$(TARGET_USER)/hdmi-cec-remote/
+	ssh -t $(TARGET_USER)@$(TARGET_HOST) "cd /home/$(TARGET_USER)/hdmi-cec-remote/ && sudo make install"
 

@@ -47,9 +47,11 @@ func getBaseKeyName(line, eventType string) (keyName string, ok bool) {
 	// Only keep the part before any " (" or before any " (" after the key name
 	return namePart, true
 }
-func runXdotool(args ...string) {
-	cmd := exec.Command("xdotool", args...)
-	_ = cmd.Run() // ignore errors for now
+func runYdotool(args ...string) {
+	cmd := exec.Command("ydotool", args...)
+	if err := cmd.Run(); err != nil {
+		log.Printf("ydotool error: %v", err)
+	}
 }
 
 func keychar(parin1 string, parin2 int) {
@@ -57,7 +59,7 @@ func keychar(parin1 string, parin2 int) {
 	parin2pos := parin2 % parin1len
 	char := string(parin1[parin2pos])
 	if parin2 > 0 {
-		runXdotool("key", "BackSpace")
+		runYdotool("key", "BackSpace")
 	}
 	switch char {
 	case " ":
@@ -67,7 +69,7 @@ func keychar(parin1 string, parin2 int) {
 	case "-":
 		char = "minus"
 	}
-	runXdotool("key", char)
+	runYdotool("key", char)
 }
 
 func getKeyEvent(line string, eventType string) (keyName string, isKeyPressed bool) {
@@ -100,7 +102,7 @@ func mouseMoveLoop(dir string, cancelChan chan struct{}) {
 			case "right":
 				x, y = speed, 0
 			}
-			runXdotool("mousemove_relative", "--", fmt.Sprintf("%d", x), fmt.Sprintf("%d", y))
+			runYdotool("mousemove", "--", fmt.Sprintf("%d", x), fmt.Sprintf("%d", y))
 			if time.Now().After(accelStart) && speed < intmousemaxspeed {
 				speed += intmouseacc
 			}
@@ -162,29 +164,29 @@ func keyPressAction(keyName string) {
 	case "0":
 		keychar(" 0", intkeychar)
 	case "channel up":
-		runXdotool("click", "4") // Scroll up
+		runYdotool("click", "4") // Scroll up
 	case "channel down":
-		runXdotool("click", "5") // Scroll down
+		runYdotool("click", "5") // Scroll down
 	case "channels list":
-		runXdotool("click", "3") // Right click
+		runYdotool("click", "3") // Right click
 	case "up", "down", "left", "right":
 		moveMouse(keyName)
 	case "select":
-		runXdotool("click", "1")
+		runYdotool("click", "1")
 	case "return":
-		runXdotool("key", "Alt_L+Left")
+		runYdotool("key", "Alt_L+Left")
 	case "exit":
-		runXdotool("key", "BackSpace")
+		runYdotool("key", "BackSpace")
 	case "clear":
-		runXdotool("key", "Escape")
+		runYdotool("key", "Escape")
 	case "F1":
-		runXdotool("key", "Right") // Skip forward
+		runYdotool("key", "Right") // Skip forward
 	case "F2":
-		runXdotool("key", "Left") // Skip backward
+		runYdotool("key", "Left") // Skip backward
 	case "F3":
-		runXdotool("key", "C") // Toggle subtitles
+		runYdotool("key", "C") // Toggle subtitles
 	case "F4":
-		runXdotool("key", "F") // Full screen
+		runYdotool("key", "F") // Full screen
 	default:
 		log.Printf("Unrecognized Key Pressed: %s\n", keyName)
 	}
