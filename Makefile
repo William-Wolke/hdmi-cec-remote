@@ -28,6 +28,11 @@ install: $(GO_BIN)
 	# systemctl --user enable $(SERVICE)
 	# systemctl --user restart $(SERVICE)
 
+reload-service:
+	systemctl --user daemon-reload
+	systemctl --user enable $(SERVICE)
+	systemctl --user restart $(SERVICE)
+
 clean:
 	rm -f $(GO_BIN)
 
