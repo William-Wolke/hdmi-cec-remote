@@ -6,7 +6,9 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"regexp"
 	"slices"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -16,6 +18,10 @@ const (
 	intmousestartspeed = 5
 	intmouseacc        = 2
 	intmousemaxspeed   = 25
+	SCROLL_UP          = 4
+	SCROLL_DOWN        = 5
+	RIGHT_CLICK        = 3
+	LEFT_CLICK         = 1
 )
 
 var (
@@ -27,7 +33,33 @@ var (
 	navKeys       = []string{"up", "right", "down", "left"}
 	moveCancel    chan struct{} // channel to signal movement goroutine to stop
 	moveDir       string
+	keyMap        map[string]int = map[string]int{}
 )
+
+func getKeyMap() map[string]int {
+	file, err := os.Open("/usr/include/linux/input-event-codes.h")
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+
+	re := regexp.MustCompile(`#define\s+(KEY_\w+)\s+(\d+)`)
+	keyMap := make(map[string]int)
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		line := scanner.Text()
+		if m := re.FindStringSubmatch(line); m != nil {
+			code, _ := strconv.Atoi(m[2])
+			keyMap[m[1]] = code
+		}
+	}
+	return keyMap
+}
+
+func getKeyCode(keyName string) (int, bool) {
+	code, ok := keyMap["KEY_"+strings.ToUpper(strings.ReplaceAll(keyName, " ", "_"))]
+	return code, ok
+}
 
 func getBaseKeyName(line, eventType string) (keyName string, ok bool) {
 	prefix := eventType
@@ -47,6 +79,26 @@ func getBaseKeyName(line, eventType string) (keyName string, ok bool) {
 	// Only keep the part before any " (" or before any " (" after the key name
 	return namePart, true
 }
+
+func pressKey(keys ...string) {
+	runYdotoolArgs := []string{"key"}
+	for _, key := range keys {
+		code, ok := getKeyCode(key)
+		if !ok {
+			log.Printf("Unknown key: %s", key)
+			continue
+		}
+		runYdotoolArgs = append(runYdotoolArgs, fmt.Sprintf("%d", code))
+	}
+	runYdotool(runYdotoolArgs...)
+	return
+}
+
+func clickMouse(button int) {
+	runYdotool("click", fmt.Sprintf("0xC%d", button))
+	return
+}
+
 func runYdotool(args ...string) {
 	cmd := exec.Command("ydotool", args...)
 	if err := cmd.Run(); err != nil {
@@ -59,17 +111,17 @@ func keychar(parin1 string, parin2 int) {
 	parin2pos := parin2 % parin1len
 	char := string(parin1[parin2pos])
 	if parin2 > 0 {
-		runYdotool("key", "BackSpace")
+		pressKey("BackSpace")
 	}
 	switch char {
 	case " ":
 		char = "space"
 	case ".":
-		char = "period"
+		char = "dot"
 	case "-":
 		char = "minus"
 	}
-	runYdotool("key", char)
+	pressKey(char)
 }
 
 func getKeyEvent(line string, eventType string) (keyName string, isKeyPressed bool) {
@@ -122,7 +174,7 @@ func moveMouse(keyName string) {
 	}
 }
 
-func keyPressAction(keyName string) {
+func onKeyPress(keyName string) {
 	isNavKey := slices.Contains(navKeys, keyName)
 	isScrollKey := keyName == "channel up" || keyName == "channel down"
 	if keyIsPressed && keyName == strlastkey && !isNavKey && !isScrollKey {
@@ -164,35 +216,35 @@ func keyPressAction(keyName string) {
 	case "0":
 		keychar(" 0", intkeychar)
 	case "channel up":
-		runYdotool("click", "4") // Scroll up
+		clickMouse(SCROLL_UP)
 	case "channel down":
-		runYdotool("click", "5") // Scroll down
+		clickMouse(SCROLL_DOWN)
 	case "channels list":
-		runYdotool("click", "3") // Right click
+		clickMouse(RIGHT_CLICK)
+	case "select":
+		clickMouse(LEFT_CLICK)
 	case "up", "down", "left", "right":
 		moveMouse(keyName)
-	case "select":
-		runYdotool("click", "1")
 	case "return":
-		runYdotool("key", "Alt_L+Left")
+		pressKey("Alt", "L", "Left")
 	case "exit":
-		runYdotool("key", "BackSpace")
+		pressKey("BackSpace")
 	case "clear":
-		runYdotool("key", "Escape")
+		pressKey("Escape")
 	case "F1":
-		runYdotool("key", "Right") // Skip forward
+		pressKey("Right") // Skip forward
 	case "F2":
-		runYdotool("key", "Left") // Skip backward
+		pressKey("Left") // Skip backward
 	case "F3":
-		runYdotool("key", "C") // Toggle subtitles
+		pressKey("C") // Toggle subtitles
 	case "F4":
-		runYdotool("key", "F") // Full screen
+		pressKey("F") // Full screen
 	default:
 		log.Printf("Unrecognized Key Pressed: %s\n", keyName)
 	}
 }
 
-func keyReleaseAction(keyName string) {
+func onKeyRelease(keyName string) {
 	log.Printf("[DEBUG] Key released: %s\n", keyName)
 	keyIsPressed = false
 	switch keyName {
@@ -208,6 +260,7 @@ func keyReleaseAction(keyName string) {
 }
 
 func main() {
+	keyMap = getKeyMap()
 	scanner := bufio.NewScanner(os.Stdin)
 	moveCancel = make(chan struct{})
 
@@ -219,11 +272,11 @@ func main() {
 
 		keyName, isKeyPressed := getKeyEvent(line, "key pressed: ")
 		if isKeyPressed {
-			keyPressAction(keyName)
+			onKeyPress(keyName)
 		}
 		keyName, isKeyReleased := getKeyEvent(line, "key released: ")
 		if isKeyReleased {
-			keyReleaseAction(keyName)
+			onKeyRelease(keyName)
 		}
 	}
 }
