@@ -82,20 +82,26 @@ func getBaseKeyName(line, eventType string) (keyName string, ok bool) {
 
 func pressKey(keys ...string) {
 	runYdotoolArgs := []string{"key"}
+	var codes []int
 	for _, key := range keys {
 		code, ok := getKeyCode(key)
 		if !ok {
 			log.Printf("Unknown key: %s", key)
 			continue
 		}
-		runYdotoolArgs = append(runYdotoolArgs, fmt.Sprintf("%d", code))
+		runYdotoolArgs = append(runYdotoolArgs, fmt.Sprintf("%d:1", code))
+		codes = append(codes, code)
+	}
+	// Release keys in reverse order
+	for i := len(codes) - 1; i >= 0; i-- {
+		runYdotoolArgs = append(runYdotoolArgs, fmt.Sprintf("%d:0", codes[i]))
 	}
 	runYdotool(runYdotoolArgs...)
 	return
 }
 
 func clickMouse(button int) {
-	runYdotool("click", fmt.Sprintf("0xC%d", button))
+	runYdotool("click", fmt.Sprintf("0xC%d:1", button), fmt.Sprintf("0xC%d:0", button))
 	return
 }
 
@@ -111,7 +117,7 @@ func keychar(parin1 string, parin2 int) {
 	parin2pos := parin2 % parin1len
 	char := string(parin1[parin2pos])
 	if parin2 > 0 {
-		pressKey("BackSpace")
+		pressKey("backspace")
 	}
 	switch char {
 	case " ":
