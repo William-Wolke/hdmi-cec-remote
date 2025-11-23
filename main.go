@@ -251,13 +251,13 @@ func onKeyPress(keyName string) {
 	case "clear":
 		pressKey("Escape")
 	case "F1": // Blue
-		openBrowserWindow("https://www.youtube.com/")
-	case "F2": // Red
-		openBrowserWindow("https://www.svtplay.se/")
-	case "F3": // Green
-		openBrowserWindow("https://www.tv4play.se/")
-	case "F4": // Yellow
 		openBrowserWindow("http://192.168.0.129:8096/web/#/home.html")
+	case "F2": // Red
+		openBrowserWindow("https://www.tv4play.se/")
+	case "F3": // Green
+		openBrowserWindow("https://www.svtplay.se/")
+	case "F4": // Yellow
+		openBrowserWindow("https://www.youtube.com/")
 	default:
 		log.Printf("Unrecognized Key Pressed: %s\n", keyName)
 	}
