@@ -219,12 +219,12 @@ func onKeyPress(keyName string) {
 		keychar("tuv8", intkeychar)
 	case "9":
 		keychar("wxyz9", intkeychar)
-	case "0":
-		keychar(" 0", intkeychar)
+	// case "0":
+	// 	keychar(" 0", intkeychar)
 	case "channel up":
-		clickMouse(SCROLL_UP)
+		pressKey("up")
 	case "channel down":
-		clickMouse(SCROLL_DOWN)
+		pressKey("down")
 	case "channels list":
 		clickMouse(RIGHT_CLICK)
 	case "select":
