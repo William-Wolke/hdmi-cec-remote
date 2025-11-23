@@ -105,7 +105,20 @@ func clickMouse(button int) {
 	return
 }
 
+func openBrowserWindow(url string) {
+	cmd := exec.Command("chromium", "--kiosk", "--noerrdialogs", "--disable-infobars", "--password-store=basic", url)
+	cmd.Env = append(os.Environ(),
+		"DISPLAY=:0",
+		"WAYLAND_DISPLAY=wayland-0",
+		"XDG_RUNTIME_DIR=/run/user/"+strconv.Itoa(os.Getuid()),
+	)
+	if err := cmd.Start(); err != nil {
+		log.Printf("[ERROR] Opening chrome failed: %v", err)
+	}
+}
+
 func runYdotool(args ...string) {
+	log.Printf("[DEBUG] Running ydotool with args: %v\n", args)
 	cmd := exec.Command("ydotool", args...)
 	if err := cmd.Run(); err != nil {
 		log.Printf("ydotool error: %v", err)
@@ -237,14 +250,14 @@ func onKeyPress(keyName string) {
 		pressKey("BackSpace")
 	case "clear":
 		pressKey("Escape")
-	case "F1":
-		pressKey("Right") // Skip forward
-	case "F2":
-		pressKey("Left") // Skip backward
-	case "F3":
-		pressKey("C") // Toggle subtitles
-	case "F4":
-		pressKey("F") // Full screen
+	case "F1": // Blue
+		openBrowserWindow("https://www.youtube.com/")
+	case "F2": // Red
+		openBrowserWindow("https://www.svtplay.se/")
+	case "F3": // Green
+		openBrowserWindow("https://www.tv4play.se/")
+	case "F4": // Yellow
+		openBrowserWindow("http://192.168.0.129:8096/web/#/home.html")
 	default:
 		log.Printf("Unrecognized Key Pressed: %s\n", keyName)
 	}
