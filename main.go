@@ -20,8 +20,8 @@ const (
 	intmousemaxspeed   = 25
 	SCROLL_UP          = 4
 	SCROLL_DOWN        = 5
-	RIGHT_CLICK        = 3
-	LEFT_CLICK         = 1
+	LEFT_CLICK         = 0
+	RIGHT_CLICK        = 1
 )
 
 var (
@@ -101,7 +101,7 @@ func pressKey(keys ...string) {
 }
 
 func clickMouse(button int) {
-	runYdotool("click", fmt.Sprintf("0xC%d:1", button), fmt.Sprintf("0xC%d:0", button))
+	runYdotool("click", fmt.Sprintf("0xC%d", button))
 	return
 }
 
