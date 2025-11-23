@@ -215,15 +215,15 @@ func onKeyPress(keyName string) {
 
 	switch keyName {
 	case "1":
-		keychar("1.!", intkeychar)
+		openBrowserWindow("https://www.svtplay.se/kanaler/svt1?start=auto")
 	case "2":
-		keychar("abc2", intkeychar)
+		openBrowserWindow("https://www.svtplay.se/kanaler/svt2?start=auto")
 	case "3":
-		keychar("def3", intkeychar)
+		openBrowserWindow("https://www.svtplay.se/kanaler/kunskapskanalen?start=auto")
 	case "4":
-		keychar("ghi4", intkeychar)
+		openBrowserWindow("https://tv4play.se/kanaler")
 	case "5":
-		keychar("jkl5", intkeychar)
+		openBrowserWindow("https://www.svtplay.se/kanaler/svtbarn?start=auto")
 	case "6":
 		keychar("mno6", intkeychar)
 	case "7":
@@ -232,6 +232,7 @@ func onKeyPress(keyName string) {
 		keychar("tuv8", intkeychar)
 	case "9":
 		keychar("wxyz9", intkeychar)
+	// NOTE: Space in flirc
 	// case "0":
 	// 	keychar(" 0", intkeychar)
 	case "channel up":
