@@ -225,7 +225,7 @@ func onKeyPress(keyName string) {
 	case "5":
 		openBrowserWindow("https://www.svtplay.se/kanaler/svtbarn?start=auto")
 	case "6":
-		keychar("mno6", intkeychar)
+		openBrowserWindow("http://192.168.0.129:3000")
 	case "7":
 		keychar("pqrs7", intkeychar)
 	case "8":
