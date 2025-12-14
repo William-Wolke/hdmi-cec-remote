@@ -1,0 +1,122 @@
+# Keybindings configuration for labwc
+# This file is used to generate rc.xml
+# remote_button field is for reference when configuring flirc
+
+keybinds:
+  # App launcher
+  - key: "W-z"
+    action: execute
+    command: "wofi --show drun"
+
+  # Browser shortcuts - streaming services
+  - key: "W-1"
+    action: browser
+    url: "https://www.svtplay.se/kanaler/svt1?start=auto"
+    remote_button: "1"
+
+  - key: "W-2"
+    action: browser
+    url: "https://www.svtplay.se/kanaler/svt2?start=auto"
+    remote_button: "2"
+
+  - key: "W-3"
+    action: browser
+    url: "https://www.svtplay.se/kanaler/kunskapskanalen?start=auto"
+    remote_button: "3"
+
+  - key: "W-4"
+    action: browser
+    url: "https://tv4play.se/kanaler"
+    remote_button: "4"
+
+  - key: "W-5"
+    action: browser
+    url: "https://www.svtplay.se/kanaler/svtbarn?start=auto"
+    remote_button: "5"
+
+  - key: "W-6"
+    action: browser
+    url: "http://192.168.0.129:3000"
+    remote_button: "6"
+
+  # Color buttons (F1-F4)
+  - key: "W-F1"
+    action: browser
+    url: "http://192.168.0.129:8096/web/#/home.html"
+    remote_button: "Blue"
+    comment: "Jellyfin"
+
+  - key: "W-F2"
+    action: browser
+    url: "https://www.tv4play.se/"
+    remote_button: "Red"
+    comment: "TV4 Play"
+
+  - key: "W-F3"
+    action: browser
+    url: "https://www.svtplay.se/"
+    remote_button: "Green"
+    comment: "SVT Play"
+
+  - key: "W-F4"
+    action: browser
+    url: "https://www.youtube.com/"
+    remote_button: "Yellow"
+    comment: "YouTube"
+
+  # D-pad navigation (mode-aware: mouse or tab mode)
+  # In tab mode: Left/Right = Shift+Tab/Tab, Up/Down = scroll
+  # In mouse mode: arrow keys move cursor, select clicks
+  - key: "W-Up"
+    action: dpad
+    direction: up
+    remote_button: "D-pad Up"
+
+  - key: "W-Down"
+    action: dpad
+    direction: down
+    remote_button: "D-pad Down"
+
+  - key: "W-Left"
+    action: dpad
+    direction: left
+    remote_button: "D-pad Left"
+
+  - key: "W-Right"
+    action: dpad
+    direction: right
+    remote_button: "D-pad Right"
+
+  - key: "W-Return"
+    action: dpad
+    direction: select
+    remote_button: "Select/OK"
+
+  # Toggle between mouse and tab mode
+  - key: "W-t"
+    action: dpad
+    direction: toggle
+    remote_button: "Index"
+    comment: "Toggle mouse/tab mode"
+
+  # Other controls
+  - key: "W-BackSpace"
+    action: keypress
+    keys: ["BackSpace"]
+    remote_button: "Exit"
+
+  - key: "W-Escape"
+    action: keypress
+    keys: ["Escape"]
+    remote_button: "Clear"
+
+  - key: "W-b"
+    action: keypress
+    keys: ["Alt", "Left"]
+    remote_button: "Return"
+    comment: "Browser back"
+
+# Browser settings
+browser:
+  command: "chromium"
+  args: ["--kiosk", "--noerrdialogs", "--disable-infobars", "--password-store=basic"]
