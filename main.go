@@ -80,8 +80,8 @@ func getBaseKeyName(line, eventType string) (keyName string, ok bool) {
 	return namePart, true
 }
 
-func pressKey(keys ...string) {
-	runYdotoolArgs := []string{"key"}
+func toKeypressArgs(keys ...string) []string {
+	args := []string{"key"}
 	var codes []int
 	for _, key := range keys {
 		code, ok := getKeyCode(key)
@@ -89,14 +89,19 @@ func pressKey(keys ...string) {
 			log.Printf("Unknown key: %s", key)
 			continue
 		}
-		runYdotoolArgs = append(runYdotoolArgs, fmt.Sprintf("%d:1", code))
+		args = append(args, fmt.Sprintf("%d:1", code))
 		codes = append(codes, code)
 	}
 	// Release keys in reverse order
 	for i := len(codes) - 1; i >= 0; i-- {
-		runYdotoolArgs = append(runYdotoolArgs, fmt.Sprintf("%d:0", codes[i]))
+		args = append(args, fmt.Sprintf("%d:0", codes[i]))
 	}
-	runYdotool(runYdotoolArgs...)
+	return args
+}
+
+func pressKey(keys ...string) {
+	yDoToolArgs := toKeypressArgs(keys...)
+	runYdotool(yDoToolArgs...)
 	return
 }
 
