@@ -3,11 +3,6 @@
 # remote_button field is for reference when configuring flirc
 
 keybinds:
-  # App launcher
-  - key: "W-z"
-    action: execute
-    command: "wofi --show drun"
-
   # Browser shortcuts - streaming services
   - key: "W-1"
     action: browser
@@ -67,22 +62,22 @@ keybinds:
   # D-pad navigation (mode-aware: mouse or tab mode)
   # In tab mode: Left/Right = Shift+Tab/Tab, Up/Down = scroll
   # In mouse mode: arrow keys move cursor, select clicks
-  - key: "W-Up"
+  - key: "W-A-Up"
     action: dpad
     direction: up
     remote_button: "D-pad Up"
 
-  - key: "W-Down"
+  - key: "W-A-Down"
     action: dpad
     direction: down
     remote_button: "D-pad Down"
 
-  - key: "W-Left"
+  - key: "W-A-Left"
     action: dpad
     direction: left
     remote_button: "D-pad Left"
 
-  - key: "W-Right"
+  - key: "W-A-Right"
     action: dpad
     direction: right
     remote_button: "D-pad Right"
@@ -104,11 +99,6 @@ keybinds:
     action: keypress
     keys: ["BackSpace"]
     remote_button: "Exit"
-
-  - key: "W-Escape"
-    action: keypress
-    keys: ["Escape"]
-    remote_button: "Clear"
 
   - key: "W-b"
     action: keypress
