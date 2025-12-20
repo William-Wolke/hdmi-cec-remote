@@ -59,40 +59,32 @@ keybinds:
     remote_button: "Yellow"
     comment: "YouTube"
 
-  # D-pad navigation (mode-aware: mouse or tab mode)
-  # In tab mode: Left/Right = Shift+Tab/Tab, Up/Down = scroll
-  # In mouse mode: arrow keys move cursor, select clicks
-  - key: "W-A-Up"
-    action: dpad
-    direction: up
+  # D-pad navigation - direct mouse control via ydotool
+  - key: "W-i"
+    action: execute
+    command: "ydotool mousemove -- 0 -30"
     remote_button: "D-pad Up"
 
-  - key: "W-A-Down"
-    action: dpad
-    direction: down
+  - key: "W-k"
+    action: execute
+    command: "ydotool mousemove -- 0 30"
     remote_button: "D-pad Down"
 
-  - key: "W-A-Left"
-    action: dpad
-    direction: left
+  - key: "W-j"
+    action: execute
+    command: "ydotool mousemove -- -30 0"
     remote_button: "D-pad Left"
 
-  - key: "W-A-Right"
-    action: dpad
-    direction: right
+  - key: "W-l"
+    action: execute
+    command: "ydotool mousemove -- 30 0"
     remote_button: "D-pad Right"
 
-  - key: "W-Return"
-    action: dpad
-    direction: select
+  - key: "W-space"
+    action: execute
+    command: "ydotool click 0xC0"
     remote_button: "Select/OK"
-
-  # Toggle between mouse and tab mode
-  - key: "W-t"
-    action: dpad
-    direction: toggle
-    remote_button: "Index"
-    comment: "Toggle mouse/tab mode"
+    comment: "Left click"
 
   # Other controls
   - key: "W-BackSpace"
