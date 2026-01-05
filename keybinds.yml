@@ -86,6 +86,17 @@ keybinds:
     remote_button: "Select/OK"
     comment: "Left click"
 
+  # Channel up/down - scroll
+  - key: "W-A-Up"
+    action: scroll
+    direction: up
+    remote_button: "Channel Up"
+
+  - key: "W-A-Down"
+    action: scroll
+    direction: down
+    remote_button: "Channel Down"
+
   # Other controls
   - key: "W-BackSpace"
     action: keypress

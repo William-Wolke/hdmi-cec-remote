@@ -128,6 +128,24 @@ func toYdotoolMousemove(direction string, speed int) string {
 	return fmt.Sprintf("ydotool mousemove -- %d %d", x, y)
 }
 
+// toYdotoolScroll generates the ydotool command for scrolling
+func toYdotoolScroll(direction string, amount int) string {
+	if amount == 0 {
+		amount = 3 // default scroll amount
+	}
+	var y int
+	switch strings.ToLower(direction) {
+	case "up":
+		y = amount
+	case "down":
+		y = -amount
+	default:
+		log.Printf("Warning: Unknown scroll direction: %s", direction)
+		return ""
+	}
+	return fmt.Sprintf("ydotool mousemove --wheel -- 0 %d", y)
+}
+
 // toYdotoolKeypress generates the ydotool command for pressing keys
 func toYdotoolKeypress(keys ...string) string {
 	var args []string
@@ -188,6 +206,11 @@ func generateRcXML(config Config) string {
 			command = toYdotoolClick(kb.Button)
 		case "mousemove":
 			command = toYdotoolMousemove(kb.Direction, kb.Speed)
+			if command == "" {
+				continue
+			}
+		case "scroll":
+			command = toYdotoolScroll(kb.Direction, kb.Speed)
 			if command == "" {
 				continue
 			}
