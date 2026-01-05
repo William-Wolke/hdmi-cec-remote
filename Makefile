@@ -2,7 +2,7 @@ SHELL := /bin/bash
 
 GO_BIN = cec-remote
 DPAD_BIN = dpad-helper
-GO_SRC = .
+GO_SRC = ./cec-remote
 SCRIPT = cec-remote.sh
 SERVICE = cec-remote.service
 TARGET_HOST = "192.168.0.133"
