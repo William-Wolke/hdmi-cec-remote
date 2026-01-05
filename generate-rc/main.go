@@ -205,6 +205,11 @@ func generateRcXML(config Config) string {
 		}
 
 		sb.WriteString(fmt.Sprintf("    <keybind key=\"%s\">\n", kb.Key))
+		// For browser actions, close the previous tab first
+		if kb.Action == "browser" {
+			closeTabCmd := toYdotoolKeypress("Ctrl", "W")
+			sb.WriteString(fmt.Sprintf("      <action name=\"Execute\" command=\"%s\" />\n", escapeXML(closeTabCmd)))
+		}
 		sb.WriteString(fmt.Sprintf("      <action name=\"Execute\" command=\"%s\" />\n", escapeXML(command)))
 		sb.WriteString("    </keybind>\n")
 	}
