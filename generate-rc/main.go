@@ -29,6 +29,18 @@ type Keybind struct {
 	Speed        int      `yaml:"speed,omitempty"`         // pixels to move (default 20)
 	RemoteButton string   `yaml:"remote_button,omitempty"` // flirc mapping reference
 	Comment      string   `yaml:"comment,omitempty"`
+	Steps        []Step   `yaml:"steps,omitempty"` // for sequence action
+}
+
+type Step struct {
+	Action    string   `yaml:"action,omitempty"`
+	Command   string   `yaml:"command,omitempty"`
+	URL       string   `yaml:"url,omitempty"`
+	Keys      []string `yaml:"keys,omitempty"`
+	Button    string   `yaml:"button,omitempty"`
+	Direction string   `yaml:"direction,omitempty"`
+	Speed     int      `yaml:"speed,omitempty"`
+	Delay     int      `yaml:"delay,omitempty"` // delay in milliseconds before this step
 }
 
 type BrowserConfig struct {
@@ -172,6 +184,47 @@ func toBrowserCommand(cfg BrowserConfig, url string) string {
 	return cfg.Command + " " + strings.Join(args, " ")
 }
 
+// stepToCommand converts a Step to a shell command
+func stepToCommand(step Step, cfg BrowserConfig) string {
+	switch step.Action {
+	case "execute":
+		return step.Command
+	case "browser":
+		return toBrowserCommand(cfg, step.URL)
+	case "keypress":
+		return toYdotoolKeypress(step.Keys...)
+	case "click":
+		return toYdotoolClick(step.Button)
+	case "mousemove":
+		return toYdotoolMousemove(step.Direction, step.Speed)
+	case "scroll":
+		return toYdotoolScroll(step.Direction, step.Speed)
+	default:
+		return ""
+	}
+}
+
+// toSequenceCommands generates a list of commands for multiple labwc actions
+func toSequenceCommands(steps []Step, cfg BrowserConfig) []string {
+	var commands []string
+
+	for _, step := range steps {
+		// Add delay if specified (convert ms to seconds)
+		if step.Delay > 0 {
+			commands = append(commands, fmt.Sprintf("sleep %.1f", float64(step.Delay)/1000))
+		}
+		// For browser actions, close the previous tab first
+		if step.Action == "browser" {
+			commands = append(commands, toYdotoolKeypress("Ctrl", "W"))
+		}
+		cmd := stepToCommand(step, cfg)
+		if cmd != "" {
+			commands = append(commands, cmd)
+		}
+	}
+	return commands
+}
+
 // escapeXML escapes special characters for XML
 func escapeXML(s string) string {
 	s = strings.ReplaceAll(s, "&", "&amp;")
@@ -193,8 +246,28 @@ func generateRcXML(config Config) string {
 `)
 
 	for _, kb := range config.Keybinds {
-		var command string
+		// Add comment if present
+		if kb.Comment != "" {
+			sb.WriteString(fmt.Sprintf("    <!-- %s -->\n", kb.Comment))
+		}
 
+		sb.WriteString(fmt.Sprintf("    <keybind key=\"%s\">\n", kb.Key))
+
+		// Handle sequence action separately - generates multiple <action> elements
+		if kb.Action == "sequence" {
+			commands := toSequenceCommands(kb.Steps, config.Browser)
+			if len(commands) == 0 {
+				log.Printf("Warning: Empty sequence for key %s", kb.Key)
+				continue
+			}
+			for _, cmd := range commands {
+				sb.WriteString(fmt.Sprintf("      <action name=\"Execute\" command=\"%s\" />\n", escapeXML(cmd)))
+			}
+			sb.WriteString("    </keybind>\n")
+			continue
+		}
+
+		var command string
 		switch kb.Action {
 		case "execute":
 			command = kb.Command
@@ -222,12 +295,6 @@ func generateRcXML(config Config) string {
 			continue
 		}
 
-		// Add comment if present
-		if kb.Comment != "" {
-			sb.WriteString(fmt.Sprintf("    <!-- %s -->\n", kb.Comment))
-		}
-
-		sb.WriteString(fmt.Sprintf("    <keybind key=\"%s\">\n", kb.Key))
 		// For browser actions, close the previous tab first
 		if kb.Action == "browser" {
 			closeTabCmd := toYdotoolKeypress("Ctrl", "W")

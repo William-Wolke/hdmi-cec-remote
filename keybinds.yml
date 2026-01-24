@@ -5,9 +5,15 @@
 keybinds:
   # Browser shortcuts - streaming services
   - key: "W-1"
-    action: browser
-    url: "https://www.svtplay.se/kanaler/svt1?start=auto"
+    action: sequence
+    steps:
+      - action: browser
+        url: "https://www.svtplay.se/kanaler/svt1?start=auto"
+      - delay: 3000
+      - action: keypress
+        keys: ["F"]
     remote_button: "1"
+    comment: "SVT1 + fullscreen"
 
   - key: "W-2"
     action: browser
