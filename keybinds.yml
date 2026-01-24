@@ -110,4 +110,10 @@ keybinds:
 # Browser settings
 browser:
   command: "chromium"
-  args: ["--kiosk", "--noerrdialogs", "--disable-infobars", "--password-store=basic"]
+  args:
+    - "--kiosk"
+    - "--noerrdialogs"
+    - "--disable-infobars"
+    - "--password-store=basic"
+    - "--enable-spatial-navigation"
+    - "--enable-features=KeyboardFocusableScrollers"
