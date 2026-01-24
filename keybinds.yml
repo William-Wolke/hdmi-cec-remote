@@ -103,11 +103,9 @@ keybinds:
     keys: ["BackSpace"]
     remote_button: "Exit"
 
-  - key: "W-b"
-    action: keypress
-    keys: ["Alt", "Left"]
-    remote_button: "Return"
-    comment: "Browser back"
+  #   keys: ["Alt", "Left"]
+  #   remote_button: "Return"
+  #   comment: "Browser back, set in flirc but not in labwc rc.xml"
 
 # Browser settings
 browser:
