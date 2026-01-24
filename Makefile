@@ -1,7 +1,7 @@
 SHELL := /bin/bash
 
-GO_BIN = cec-remote
-DPAD_BIN = dpad-helper
+GO_BIN = cec-remote-bin
+# DPAD_BIN = dpad-helper
 GO_SRC = ./cec-remote
 SCRIPT = cec-remote.sh
 SERVICE = cec-remote.service
@@ -15,24 +15,23 @@ LABWC_DIR = /home/$(TARGET_USER)/.config/labwc
 
 .PHONY: all generate-rc clean install reload-service sync-remote build-arm
 
-all: $(GO_BIN) $(DPAD_BIN)
+all: $(GO_BIN)
 
 $(GO_BIN):
 	go build -o $(GO_BIN) $(GO_SRC)
 
-$(DPAD_BIN):
-	go build -o $(DPAD_BIN) ./dpad/
+# $(DPAD_BIN):
+# 	go build -o $(DPAD_BIN) ./dpad/
 
 build-arm: generate-rc
 	GOOS=linux GOARCH=arm GOARM=7 go build -o $(GO_BIN) $(GO_SRC)
-	GOOS=linux GOARCH=arm GOARM=7 go build -o $(DPAD_BIN) ./dpad/
 
 generate-rc:
 	go run ./generate-rc/
 
-install: $(GO_BIN) $(DPAD_BIN)
-	install -m 0755 $(GO_BIN) $(BIN_DIR)
-	install -m 0755 $(DPAD_BIN) $(BIN_DIR)
+install: $(GO_BIN)
+	install -m 0755 $(GO_BIN) $(BIN_DIR)/cec-remote
+	# install -m 0755 $(DPAD_BIN) $(BIN_DIR)
 	install -m 0755 $(SCRIPT) $(BIN_DIR)
 	install -m 0644 $(SERVICE) $(SYSTEMD_DIR)
 	mkdir -p $(LABWC_DIR)
@@ -48,7 +47,7 @@ reload-service:
 	systemctl --user restart $(SERVICE)
 
 clean:
-	rm -f $(GO_BIN) $(DPAD_BIN) rc.xml
+	rm -f $(GO_BIN) rc.xml
 
 sync-remote:
 	make clean
